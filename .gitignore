@@ -25,9 +25,8 @@ TASK.md
 helpers/
 tex_files/
 
-# Exported notebooks (exclude old exports, keep the rendered notebook)
+# Exported notebooks
 *.html
-!french_caselaw_classifier.html
 
 # Claude internal
 .claude/
