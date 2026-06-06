@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# Model / data artifacts
+cache/
+root/
+
+CLAUDE.md
+TASK.md
+
+# LaTeX build artifacts
+helpers/
+tex_files/
+
+# Exported notebooks (exclude old exports, keep the rendered notebook)
+*.html
+!french_caselaw_classifier.html
+
+# Claude internal
+.claude/
