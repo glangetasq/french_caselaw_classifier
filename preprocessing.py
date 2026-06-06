@@ -1,3 +1,4 @@
+import re
 import uuid
 
 import pandas as pd
@@ -82,5 +83,17 @@ def stratified_split(
 
 def load_word_list(path: str | Path) -> list[str]:
     return [line.strip() for line in Path(path).read_text().splitlines() if line.strip()]
+
+
+_CHAMBER_RE = re.compile(
+    r'\b(?:première|deuxième|troisième|2ème|3ème)?\s*'
+    r'chambre\s+(?:civile?|commerciale?|criminelle?|sociale?|correctionnelle?)\b',
+    flags=re.IGNORECASE,
+)
+
+
+def strip_chamber_names(text: pd.Series) -> pd.Series:
+    """Remove 'chambre X' structural patterns without touching standalone legal vocabulary."""
+    return text.str.replace(_CHAMBER_RE, '', regex=True)
 
 
