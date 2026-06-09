@@ -29,6 +29,14 @@ def load_model(model_name: str, device: torch.device):
     return tokenizer, model
 
 
+def _truncate_head_tail(text: str, tokenizer, n_head: int = 63, n_tail: int = 63) -> str:
+    tokens = tokenizer.tokenize(text)
+    if len(tokens) <= n_head + n_tail:
+        return text
+    tokens = tokens[:n_head] + tokens[-n_tail:]
+    return tokenizer.convert_tokens_to_string(tokens)
+
+
 def embed(
     texts: list[str],
     tokenizer,
@@ -36,8 +44,11 @@ def embed(
     device: torch.device,
     batch_size: int | None = None,
     max_length: int = 128,
+    head_tail: bool = False,
     progress: bool = True,
 ) -> np.ndarray:
+    if head_tail:
+        texts = [_truncate_head_tail(t, tokenizer) for t in texts]
     if batch_size is None:
         batch_size = _DEFAULT_BATCH_SIZE.get(device.type, 32)
     batches = range(0, len(texts), batch_size)

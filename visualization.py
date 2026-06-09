@@ -211,6 +211,54 @@ def summary_table(**results):
     return df.style.apply(_highlight, axis=0).format(fmt, na_rep="—")
 
 
+def ngram_comparison_table(results: dict[tuple[int, int], "EvalMulticlassResult"]):
+    """Compare char TF-IDF n-gram ranges. Rows sorted by ngram_range."""
+    from evaluation import _TBL_STYLES
+
+    rows = {}
+    for ngram_range, result in sorted(results.items()):
+        f_col = f"f{result.beta:g}"
+        oos = result.metrics.loc["macro", f_col]
+        ood = result.ood_metrics.loc["macro", f_col] if result.ood_metrics is not None else float("nan")
+        try:
+            vocab = len(result.model[0].vocabulary_)
+        except Exception:
+            vocab = float("nan")
+        rows[str(ngram_range)] = {
+            "OOS F2": oos,
+            "OOD F2": ood,
+            "Δ (OOD−OOS)": ood - oos,
+            "Vocab": vocab,
+        }
+
+    df = pd.DataFrame(rows).T
+    best_ood_row = df["OOD F2"].idxmax()
+    _GOLD = "background-color: #ffd700; font-weight: bold; color: #333"
+
+    def _row_style(row):
+        if row.name != best_ood_row:
+            return [""] * len(row)
+        out = ["background-color: #f0f4ff"] * len(row)
+        out[list(row.index).index("OOD F2")] = _GOLD
+        return out
+
+    def _col_highlight(col):
+        if col.name not in ("OOS F2", "Δ (OOD−OOS)"):
+            return [""] * len(col)
+        best = col.idxmax()
+        return [_GOLD if i == best else "" for i in col.index]
+
+    fmt = {"OOS F2": "{:.1%}", "OOD F2": "{:.1%}", "Δ (OOD−OOS)": "{:+.1%}", "Vocab": "{:,.0f}"}
+    return (
+        df.style
+        .apply(_row_style, axis=1)
+        .apply(_col_highlight, axis=0)
+        .format(fmt, na_rep="—")
+        .set_caption("Char TF-IDF — n-gram range comparison")
+        .set_table_styles(_TBL_STYLES)
+    )
+
+
 def stratified_split_table(
     df: pd.DataFrame,
     train: pd.DataFrame,
